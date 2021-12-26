@@ -83,9 +83,9 @@ app.get('/details/:id', async function(req, res){
     res.send(data);
 })
 
-app.get('/price-list', async function(req, res){
+app.get('/price-list/:id', async function(req, res){
     const conn = new DB3();
-    let data = await conn.getPlaceList();
+    let data = await conn.getPlaceList(req.params.id);
     res.send(data);
 })
 
