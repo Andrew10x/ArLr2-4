@@ -46,11 +46,3 @@ class MockupOrderBuilder {
 
 module.exports.MockupOrder = this.MockupOrder;
 module.exports.MockupOrderBuilder = this.MockupOrderBuilder;
-/*
-order = new AdvOrderBuilder()
-    .buildTitle('dfs')
-    .buildDetails('sdfffffff')
-    .build()
-
-order.show()
-*/

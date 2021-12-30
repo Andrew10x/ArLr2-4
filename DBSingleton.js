@@ -1,12 +1,7 @@
 require('dotenv').config();
 pg = require('pg')
-const e = require('express');
-let express = require('express');
-const { maxSatisfying } = require('semver');
-
-const DB2 = require('./Magazine2');
-const DB3 = require('./Magazine3');
-
+let express = require('express');;
+const axios = require('axios');
 
 let app = express();
 
@@ -32,7 +27,6 @@ class DBSingleton {
     }
 
     async getData(pageNumb=0) {
-        //console.log('page', pageNumb == 1)
         let r;
         if(pageNumb == 0)
             r = await this.pool.query('select * from AdvPlaceList pl left join AdvOrders o on pl.AdvPlaceId = o.AdvPlaceId')
@@ -44,6 +38,12 @@ class DBSingleton {
         
         }
         
+        let data = Object.values(r.rows)
+        return data;
+    }
+
+    async makeQuery(q) {
+        let r = await this.pool.query(q)
         let data = Object.values(r.rows)
         return data;
     }
@@ -192,10 +192,10 @@ class DBSingleton {
         let today = new Date();
         today = Number(today.setHours(0, 0, 0, 0));
         let date = await this.getDate();
+        
         if(Number(date[0].curdate) !== today) 
             this.addNewData();
         
-        //console.log(this.getData())
         return this.getData(pageNumb);       
     }
 
@@ -215,52 +215,32 @@ class DBSingleton {
     async addNewData() {
         this.deletePlaceLists(2);
         this.deletePlaceLists(3);
-        let dataFromDB2 = await new DB2().getData();
+        let dataFromDB2 = (await axios.get('http://localhost:4000/search')).data;
+        let dataFromDB3 = (await axios.get('http://localhost:5000/price-list')).data;
+        for(let i=0; i<dataFromDB3.length; i++) {
+            const details = (await axios.get(`http://localhost:5000/details/${dataFromDB3[i].advplaceid}`)).data;
+            dataFromDB3[i]['advorderid'] = details[0].advorderid;
+            dataFromDB3[i]['details'] = details[0].details;
+        }
+     
         for(let i=0; i<dataFromDB2.length; i++){
             await this.addPlaceList(dataFromDB2[i].place, dataFromDB2[i].price, dataFromDB2[i].status,2);
         }
-        let dataFromDB3 = await new DB3().getData();
+    
         for(let i=0; i<dataFromDB3.length; i++){
             await this.addPlaceList(dataFromDB3[i].place, dataFromDB3[i].price, dataFromDB3[i].status,3);
         }
-
-
+        
         await this.setDate();
-        /*for(let i=0; i<dataFromDB2.length; i++){
-            const dub = await this.pool.query(`select * from AdvPlaceList 
-            where place=${dataFromDB2[i].place} and magazinenumber=2`);
-            if(!dub.length) {
-                await this.addPlaceList(dataFromDB2.place, dataFromDB2.price, dataFromDB2.status,2);
-            
-            }
-        }*/
-        /*
-        let dataFromDB3 = await new DB3().getData();
-        for(let i=0; i<dataFromDB3.length; i++){
-            const dub = await this.pool.query(`select * from AdvPlaceList 
-            where place=${dataFromDB3[i].place} and magazinenumber=3`);
-            if(!dub.length) {
-                await this.addPlaceList(dataFromDB3.place, dataFromDB3.price, dataFromDB3.status,3);
-            }
-        }*/
     }
 }
 
 const main = async() => {
     conn = new DBSingleton();
-    console.log(await conn.getPlaceList(1))
-    //let  data = await conn.getData();
-    //conn.addOrder(3, 'Обміняю качок Каролінок на курей, на птицю або інше, пропонуйте варіанти 1000грн.')
-    //conn.updateOrder(13, 'New text')
-    //conn.deleteOrder(3, 13)
-
     //await conn.addNewData();
-    //console.log('dsf', await conn.getUpData())
-
-
 }
 
-main()
+//main()
 
 
 module.exports = DBSingleton;

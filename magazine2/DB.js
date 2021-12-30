@@ -3,10 +3,7 @@ pg = require('pg')
 let express = require('express');
 
 
-let app = express();
-
-
-class DB2 {
+class DB {
     #config = {
         user: 'postgres',
         host: 'localhost',
@@ -18,10 +15,10 @@ class DB2 {
     pool
 
     constructor() {
-        if(typeof DB2.instance === 'object') {
-            return DB2.instance;
+        if(typeof DB.instance === 'object') {
+            return DB.instance;
         }
-        DB2.instance = this;
+        DB.instance = this;
         this.pool = new pg.Pool(this.#config);
         return this;
     }
@@ -60,7 +57,7 @@ class DB2 {
 }
 
 const main = async() => {
-    conn = new DB2();
+    conn = new DB();
     let  data = await conn.getData();
     //console.log(data)
 }
@@ -68,4 +65,4 @@ const main = async() => {
 //main()
 
 
-module.exports = DB2;
+module.exports = DB;

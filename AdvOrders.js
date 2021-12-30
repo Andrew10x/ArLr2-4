@@ -44,8 +44,3 @@ class AdvOrderBuilder {
 module.exports.AdvOrder = AdvOrder;
 module.exports.AdvOrderBuilder = AdvOrderBuilder;
 
-order = new AdvOrderBuilder()
-    .buildDetails('sdfffffff')
-    .build()
-
-order.show()
